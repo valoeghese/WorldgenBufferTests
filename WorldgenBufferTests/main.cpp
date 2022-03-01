@@ -151,7 +151,7 @@ void PasteZone(IntVector2 zone_position) {
 	int base_y = zone_position.y;
 
 	// search around it in a square for buffers situated in this zone
-	for (int dx = -1; dx <= 1; dx++) { // MODIFIED: fix -1 to 1
+	for (int dx = -1; dx <= 1; dx++) {
 		for (int dy = -1; dy <= 1; dy++) {
 			if (dx == 0 && dy == 0) continue;
 
