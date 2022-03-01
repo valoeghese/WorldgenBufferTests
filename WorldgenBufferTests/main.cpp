@@ -128,10 +128,8 @@ void PasteZone(IntVector2 zone_position) {
 			IntVector2 search_location(base_x + dx, base_y + dy);
 
 			std::unordered_map<IntVector2, ZoneBufferArr8>::iterator bufs = zoneBuffers->find(search_location);
-			cout << "Looking for buffs" << endl;
 
 			if (bufs != zoneBuffers->end()) {
-				cout << "Found buffs" << endl;
 				ZoneBufferArr8& buffer_collection = bufs->second;
 
 				// reverse of dx and dy to get the relative coords of this zone from the buffer's parent zone
@@ -184,11 +182,19 @@ int main() {
 	cout << "Hello, Baby Zone!" << endl;
 	IntVector2 the_child_zone(6, 8);
 	
-	cout << "Setting Block In Buffer!" << endl;
+	cout << "Setting Blocks In Buffer!" << endl;
 	SetBlockInBuffer(the_master_zone, the_child_zone, IntVector3(0, 0, 0), 4);
 	SetBlockInBuffer(the_master_zone, the_child_zone, IntVector3(0, 1, 0), 4);
 	SetBlockInBuffer(the_master_zone, the_child_zone, IntVector3(0, 0, 1), 3);
 
+	cout << "Read1" << endl;
 	PasteZone(the_child_zone);
+	cout << "Read2" << endl;
+	PasteZone(the_child_zone);
+
+	cout << "Setting More Blocks in Buffer" << endl;
+	SetBlockInBuffer(the_master_zone, the_child_zone, IntVector3(2, 1, 0), -8);
+	SetBlockInBuffer(the_master_zone, the_child_zone, IntVector3(0, 2, 1), 0);
+	cout << "Read3" << endl;
 	PasteZone(the_child_zone);
 }
