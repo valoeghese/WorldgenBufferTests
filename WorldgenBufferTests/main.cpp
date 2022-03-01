@@ -104,13 +104,25 @@ int BufferArrLoc(int x_dif, int y_dif) {
 	}
 }
 
-typedef struct {
-	std::unordered_map<IntVector3, int>* to_paste;
-} ZoneBuffer;
+struct Block {
+	int r;
+	int g;
+	int b;
+};
 
-typedef struct {
+std::ostream& operator<<(std::ostream& Str, const Block& item) {
+	Str << "Block(" << item.r << ", " << item.g << ", " << item.b << ")";
+	return Str;
+}
+
+struct ZoneBuffer {
+	std::unordered_map<IntVector3, Block>* to_paste;
+};
+
+struct ZoneBufferArr8 {
 	ZoneBuffer neighbours[8];
-} ZoneBufferArr8;
+};
+
 
 std::unordered_map<IntVector2, ZoneBufferArr8>* zoneBuffers;
 
@@ -134,7 +146,7 @@ void PasteZone(IntVector2 zone_position) {
 
 				// reverse of dx and dy to get the relative coords of this zone from the buffer's parent zone
 				int index = BufferArrLoc(-dx, -dy);
-				std::unordered_map<IntVector3, int>* to_paste = buffer_collection.neighbours[index].to_paste;
+				std::unordered_map<IntVector3, Block>* to_paste = buffer_collection.neighbours[index].to_paste;
 
 				if (to_paste) {
 					for (auto it = to_paste->begin(); it != to_paste->end(); it++) {
@@ -149,7 +161,7 @@ void PasteZone(IntVector2 zone_position) {
 	}
 }
 
-void SetBlockInBuffer(IntVector2 parent_pos, IntVector2 zone_pos, IntVector3 local_block_pos, int block) {
+void SetBlockInBuffer(IntVector2 parent_pos, IntVector2 zone_pos, IntVector3 local_block_pos, Block block) {
 	std::unordered_map<IntVector2, ZoneBufferArr8>::iterator bufs = zoneBuffers->find(parent_pos);
 	int index = BufferArrLoc(zone_pos.x - parent_pos.x, zone_pos.y - parent_pos.y);
 
@@ -159,7 +171,7 @@ void SetBlockInBuffer(IntVector2 parent_pos, IntVector2 zone_pos, IntVector3 loc
 
 		// initialise if not yet
 		if (!buffer_collection.neighbours[index].to_paste) {
-			buffer_collection.neighbours[index].to_paste = new std::unordered_map<IntVector3, int>;
+			buffer_collection.neighbours[index].to_paste = new std::unordered_map<IntVector3, Block>;
 		}
 
 		// add the block
@@ -167,7 +179,7 @@ void SetBlockInBuffer(IntVector2 parent_pos, IntVector2 zone_pos, IntVector3 loc
 	} else {
 		// create value
 		ZoneBufferArr8 new_val;
-		new_val.neighbours[index].to_paste = new std::unordered_map<IntVector3, int>;
+		new_val.neighbours[index].to_paste = new std::unordered_map<IntVector3, Block>;
 		(*new_val.neighbours[index].to_paste)[local_block_pos] = block;
 
 		(*zoneBuffers)[parent_pos] = new_val;
@@ -175,6 +187,21 @@ void SetBlockInBuffer(IntVector2 parent_pos, IntVector2 zone_pos, IntVector3 loc
 }
 
 int main() {
+	Block red_block;
+	red_block.r = 255;
+	red_block.g = 0;
+	red_block.b = 0;
+
+	Block blue_block;
+	blue_block.r = 0;
+	blue_block.g = 0;
+	blue_block.b = 255;
+
+	Block black_block;
+	black_block.r = 0;
+	black_block.g = 0;
+	black_block.b = 0;
+
 	zoneBuffers = new std::unordered_map<IntVector2, ZoneBufferArr8>;
 
 	cout << "Hello, World!" << endl;
@@ -183,9 +210,9 @@ int main() {
 	IntVector2 the_child_zone(6, 8);
 	
 	cout << "Setting Blocks In Buffer!" << endl;
-	SetBlockInBuffer(the_master_zone, the_child_zone, IntVector3(0, 0, 0), 4);
-	SetBlockInBuffer(the_master_zone, the_child_zone, IntVector3(0, 1, 0), 4);
-	SetBlockInBuffer(the_master_zone, the_child_zone, IntVector3(0, 0, 1), 3);
+	SetBlockInBuffer(the_master_zone, the_child_zone, IntVector3(0, 0, 0), red_block);
+	SetBlockInBuffer(the_master_zone, the_child_zone, IntVector3(0, 1, 0), red_block);
+	SetBlockInBuffer(the_master_zone, the_child_zone, IntVector3(0, 0, 1), blue_block);
 
 	cout << "Read1" << endl;
 	PasteZone(the_child_zone);
@@ -193,8 +220,8 @@ int main() {
 	PasteZone(the_child_zone);
 
 	cout << "Setting More Blocks in Buffer" << endl;
-	SetBlockInBuffer(the_master_zone, the_child_zone, IntVector3(2, 1, 0), -8);
-	SetBlockInBuffer(the_master_zone, the_child_zone, IntVector3(0, 2, 1), 0);
+	SetBlockInBuffer(the_master_zone, the_child_zone, IntVector3(2, 1, 0), blue_block);
+	SetBlockInBuffer(the_master_zone, the_child_zone, IntVector3(0, 2, 1), black_block);
 	cout << "Read3" << endl;
 	PasteZone(the_child_zone);
 }
