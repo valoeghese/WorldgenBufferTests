@@ -116,7 +116,7 @@ std::ostream& operator<<(std::ostream& Str, const Block& item) {
 }
 
 struct ZoneBuffer {
-	std::unordered_map<IntVector3, Block>* to_paste;
+	std::unordered_map<IntVector3, Block>* to_paste = nullptr;
 };
 
 struct ZoneBufferArr8 {
@@ -127,6 +127,24 @@ struct ZoneBufferArr8 {
 std::unordered_map<IntVector2, ZoneBufferArr8>* zoneBuffers;
 
 // functions for this crap
+
+void CleanUpBuffers(IntVector2 zone_pos) {
+	std::unordered_map<IntVector2, ZoneBufferArr8>::iterator bufs = zoneBuffers->find(zone_pos);
+
+	if (bufs != zoneBuffers->end()) {
+		ZoneBufferArr8& buffer_collection = bufs->second;
+
+		for (ZoneBuffer& zone_buffer : buffer_collection.neighbours) {
+			if (zone_buffer.to_paste) {
+				delete zone_buffer.to_paste;
+				zone_buffer.to_paste = nullptr;
+			}
+		}
+
+		zoneBuffers->erase(zone_pos);
+	}
+}
+
 
 void PasteZone(IntVector2 zone_position) {
 	int base_x = zone_position.x;
@@ -186,6 +204,7 @@ void SetBlockInBuffer(IntVector2 parent_pos, IntVector2 zone_pos, IntVector3 loc
 	}
 }
 
+// Test Code
 int main() {
 	Block red_block;
 	red_block.r = 255;
@@ -217,11 +236,20 @@ int main() {
 	cout << "Read1" << endl;
 	PasteZone(the_child_zone);
 	cout << "Read2" << endl;
-	PasteZone(the_child_zone);
+	PasteZone(the_child_zone); // ensuring it doesn't do it twice
 
 	cout << "Setting More Blocks in Buffer" << endl;
 	SetBlockInBuffer(the_master_zone, the_child_zone, IntVector3(2, 1, 0), blue_block);
 	SetBlockInBuffer(the_master_zone, the_child_zone, IntVector3(0, 2, 1), black_block);
 	cout << "Read3" << endl;
 	PasteZone(the_child_zone);
+
+	cout << "Setting Even More Blocks in Buffer" << endl;
+	SetBlockInBuffer(the_master_zone, the_child_zone, IntVector3(2, 42, 0), blue_block);
+	SetBlockInBuffer(the_master_zone, the_child_zone, IntVector3(0, 2, 69), black_block);
+
+	cout << "Cleaning up" << endl;
+	CleanUpBuffers(the_master_zone);
+	cout << "The program has OCD so it's cleaning up again" << endl;
+	CleanUpBuffers(the_master_zone); // ensuring it can handle this wacky case too
 }
